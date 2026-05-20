@@ -8,9 +8,11 @@ import {
   FileJson,
   Filter,
   LayoutDashboard,
+  Moon,
   Plus,
   Save,
   Settings2,
+  Sun,
   Upload,
   X,
 } from 'lucide-react';
@@ -229,8 +231,12 @@ export function App() {
   const [project, setProject] = useState<ProjectConfig | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string>('cmp-filter');
   const [selectedMetricId, setSelectedMetricId] = useState<string>('total_km');
-  const [status, setStatus] = useState('Încarcă tabel_master.xlsx sau folosește demo-ul inclus.');
+  const [, setStatus] = useState('Încarcă tabel_master.xlsx sau folosește demo-ul inclus.');
   const [showDocs, setShowDocs] = useState(false);
+  const [uiTheme, setUiTheme] = useState<'light' | 'dark'>(() => {
+    const saved = window.localStorage.getItem('kpi-studio-theme');
+    return saved === 'dark' ? 'dark' : 'light';
+  });
   const importRef = useRef<HTMLInputElement>(null);
   const restoreRef = useRef<HTMLInputElement>(null);
 
@@ -325,15 +331,21 @@ export function App() {
     }
   }
 
+  function toggleUiTheme() {
+    setUiTheme((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      window.localStorage.setItem('kpi-studio-theme', next);
+      return next;
+    });
+  }
+
   return (
-    <div className="studio-shell">
+    <div className="studio-shell" data-theme={uiTheme}>
       <header className="topbar">
         <div>
           <div className="brand-row">
-            <LayoutDashboard size={25} />
-            <h1>KPI Studio</h1>
+            <img className="brand-logo" src="/kpi-studio-logo.svg" alt="KPI Studio" />
           </div>
-          <p>{status}</p>
         </div>
         <div className="toolbar">
           <button className="icon-button" onClick={loadDemo} title="Încarcă tabel_master.xlsx">
@@ -359,6 +371,14 @@ export function App() {
           <button className="icon-button" onClick={() => setShowDocs(true)} title="Deschide manualul de utilizare">
             <BookOpen size={18} />
             Documentație
+          </button>
+          <button
+            className="theme-toggle"
+            onClick={toggleUiTheme}
+            title={uiTheme === 'dark' ? 'Schimbă la tema luminoasă' : 'Schimbă la tema dark'}
+            aria-label={uiTheme === 'dark' ? 'Schimbă la tema luminoasă' : 'Schimbă la tema dark'}
+          >
+            {uiTheme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
           </button>
           <input
             ref={importRef}
@@ -388,7 +408,7 @@ export function App() {
       {!project ? (
         <main className="empty-state">
           <div>
-            <LayoutDashboard size={46} />
+            <img className="splash-icon" src="/kpi-studio-icon.svg" alt="KPI Studio" />
             <h2>Builder local pentru dashboarduri interactive</h2>
             <p>Importă un fișier XLSX/CSV, configurează metrici și componente, apoi exportă un HTML unic, offline.</p>
             <button className="primary-button" onClick={loadDemo}>

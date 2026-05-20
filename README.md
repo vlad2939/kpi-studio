@@ -2,7 +2,6 @@
 
 KPI Studio este o aplicație web locală pentru construirea de dashboarduri interactive din fișiere `.xlsx`, `.xls` sau `.csv`. Aplicația permite importul datelor, configurarea filtrelor, definirea metricilor, aranjarea componentelor vizuale și exportul dashboardului final într-un singur fișier HTML care funcționează offline.
 
-
 ## Cuprins
 
 1. Cerințe
