@@ -9,18 +9,20 @@ Prima versiune include un preset construit pentru fișierul `tabel_master.xlsx` 
 1. Cerințe
 2. Instalare
 3. Lansare rapidă
-4. Structura aplicației
-5. Flux de lucru recomandat
-6. Import date XLSX/CSV
-7. Filtre condiționale
-8. Configurare metrici
-9. Configurare componente
-10. Preview dashboard
-11. Backup și restore JSON
-12. Export HTML standalone
-13. Fișiere importante
-14. Publicare pe GitHub
-15. Depanare
+4. Pornire prin dublu click în Windows
+5. Structura aplicației
+6. Flux de lucru recomandat
+7. Import date XLSX/CSV
+8. Filtre condiționale
+9. Configurare metrici
+10. Configurare componente
+11. Preview dashboard
+12. Backup și restore JSON
+13. Export HTML standalone
+14. Iconul aplicației
+15. Fișiere importante
+16. Publicare pe GitHub
+17. Depanare
 
 ## Cerințe
 
@@ -76,6 +78,29 @@ http://127.0.0.1:5173
 ```
 
 Dacă portul este ocupat, Vite poate alege automat un alt port.
+
+## Pornire prin dublu click în Windows
+
+Pentru Windows 11 există fișierul:
+
+```text
+start.bat
+```
+
+Poți porni aplicația prin dublu click pe acest fișier. Scriptul face automat următoarele operațiuni:
+
+1. intră în folderul proiectului;
+2. verifică dacă Node.js și npm sunt disponibile;
+3. instalează dependențele dacă folderul `node_modules/` lipsește;
+4. construiește aplicația;
+5. deschide browserul la `http://127.0.0.1:5174/`;
+6. pornește serverul local pentru aplicație.
+
+În mod normal aplicația pornește pe portul `5174`. Dacă acel port este deja folosit, scriptul încearcă automat porturile următoare și deschide browserul pe adresa corectă.
+
+Fereastra deschisă de `start.bat` trebuie lăsată pornită cât timp folosești KPI Studio. Pentru oprire, închide fereastra sau apasă `Ctrl+C`.
+
+Prima pornire poate dura mai mult, deoarece se instalează dependențele. Pornirile următoare ar trebui să fie mai rapide.
 
 ## Structura aplicației
 
@@ -255,6 +280,25 @@ Fișierul exportat funcționează offline. Poate fi deschis direct în browser, 
 
 După export, poți trimite fișierul HTML altor persoane. Acestea vor putea folosi filtrele și graficele fără să instaleze KPI Studio.
 
+## Iconul aplicației
+
+Proiectul include un icon dedicat pentru KPI Studio:
+
+- `public/kpi-studio-icon.svg`
+- `public/kpi-studio-icon.ico`
+
+Iconul este legat în `index.html` și apare ca favicon în browser. Fișierul `.ico` poate fi folosit și pentru shortcut-uri Windows.
+
+Pentru a crea un shortcut cu icon personalizat:
+
+1. click dreapta pe `start.bat`;
+2. alege `Create shortcut`;
+3. click dreapta pe shortcut;
+4. alege `Properties`;
+5. apasă `Change Icon`;
+6. selectează `public/kpi-studio-icon.ico`;
+7. salvează modificările.
+
 ## Fișiere importante
 
 - `src/App.tsx`: interfața principală a aplicației.
@@ -263,6 +307,9 @@ După export, poți trimite fișierul HTML altor persoane. Acestea vor putea fol
 - `src/runtime.ts`: runtimeul folosit pentru preview și export HTML.
 - `src/styles.css`: stilurile interfeței aplicației.
 - `scripts/serve-dist.mjs`: server local simplu pentru versiunea construită.
+- `start.bat`: pornire rapidă prin dublu click în Windows.
+- `public/kpi-studio-icon.svg`: iconul vectorial al aplicației.
+- `public/kpi-studio-icon.ico`: iconul pentru browser și shortcut-uri Windows.
 - `tabel_master.xlsx`: dataset demo.
 - `export_analiza.html`: fișier de referință pentru stilul dashboardului exportat.
 - `README.md`: manualul de utilizare.
@@ -273,7 +320,9 @@ După export, poți trimite fișierul HTML altor persoane. Acestea vor putea fol
 Pentru GitHub, urcă fișierele sursă și configurația proiectului:
 
 - `src/`
+- `public/`
 - `scripts/`
+- `start.bat`
 - `index.html`
 - `package.json`
 - `package-lock.json`

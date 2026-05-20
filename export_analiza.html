@@ -1,0 +1,5037 @@
+<!doctype html>
+<html lang="ro">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KPI Studio Local</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+      :root {
+        --bg: #eef2f7;
+        --surface: #ffffff;
+        --surface-soft: #f7f9fc;
+        --line: #d8e0ea;
+        --text: #11213b;
+        --muted: #6e8098;
+        --shadow-lg: 0 16px 38px rgba(15, 23, 42, .08);
+        --shadow-sm: 0 8px 20px rgba(15, 23, 42, .05)
+      }
+
+      * {
+        box-sizing: border-box
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, Segoe UI, Arial, sans-serif;
+        color: var(--text);
+        background: var(--bg)
+      }
+
+      button,
+      input,
+      select {
+        font: inherit
+      }
+
+      .wrap {
+        max-width: 1600px;
+        min-width: 1260px;
+        margin: 0 auto;
+        padding: 0 18px
+      }
+
+      .page {
+        padding: 24px 0 28px
+      }
+
+      .preview-canvas {
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        box-shadow: var(--shadow-lg);
+        margin: 0 auto;
+        background: #ffffff;
+        min-height: 860px;
+        padding: 22px;
+        max-width: 1600px
+      }
+
+      .slot-stack {
+        display: grid;
+        gap: 18px
+      }
+
+      .preview-grid-two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 18px
+      }
+
+      .preview-grid-three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+        margin-top: 18px
+      }
+
+      .surface-card {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: var(--shadow-sm);
+        padding: 18px;
+        position: relative
+      }
+
+      .header-block {
+        padding: 8px 4px
+      }
+
+      .header-block h2 {
+        margin: 0;
+        line-height: 1.1
+      }
+
+      .header-block p {
+        margin: 8px 0 0
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800
+      }
+
+      .card-subtitle {
+        margin: 6px 0 0
+      }
+
+      .muted {
+        color: var(--muted)
+      }
+
+      .slider-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px
+      }
+
+      .pill-dark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #10203a;
+        color: #fff;
+        font-weight: 800;
+        line-height: 1;
+        text-align: center
+      }
+
+      .year-slider {
+        width: 100%;
+        accent-color: #1975d1
+      }
+
+      .slider-scale {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: .86rem;
+        margin-top: 10px
+      }
+
+      .filter-header-premium {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px
+      }
+
+      .reset-button {
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid #d1dce7;
+        background: #fff;
+        padding: 0 18px;
+        font-weight: 800;
+        color: var(--text);
+        cursor: pointer
+      }
+
+      .filter-grid-premium {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px
+      }
+
+      .field-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: .78rem;
+        font-weight: 800;
+        color: #667b95;
+        text-transform: uppercase;
+        letter-spacing: .03em
+      }
+
+      .ui-select {
+        width: 100%;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid #c8d5e3;
+        padding: 0 14px;
+        background: #fff;
+        color: var(--text)
+      }
+
+      .progress-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        margin-top: 8px;
+        margin-bottom: 18px
+      }
+
+      .progress-title-line {
+        font-size: 1.1rem;
+        font-weight: 800
+      }
+
+      .progress-total-line {
+        line-height: 1.05;
+        margin-top: 2px
+      }
+
+      .progress-total-line strong {
+        display: block;
+        font-weight: 900;
+        line-height: 1.02
+      }
+
+      .progress-total-line span {
+        display: block;
+        font-size: .92rem;
+        color: var(--muted);
+        font-weight: 600;
+        margin-top: 6px
+      }
+
+      .progress-bars {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2px;
+        margin-bottom: 18px
+      }
+
+      .progress-segment {
+        color: #fff;
+        padding: 12px 14px;
+        text-align: center;
+        font-weight: 800
+      }
+
+      .progress-segment:first-child {
+        border-radius: 18px 0 0 18px
+      }
+
+      .progress-segment:last-child {
+        border-radius: 0 18px 18px 0
+      }
+
+      .progress-segment small {
+        display: block;
+        font-size: .92rem;
+        opacity: .95
+      }
+
+      .progress-segment span {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.2rem
+      }
+
+      .progress-list {
+        display: grid;
+        gap: 14px
+      }
+
+      .progress-row {
+        display: grid;
+        grid-template-columns: 20px 1.2fr 1fr auto;
+        gap: 14px;
+        align-items: center
+      }
+
+      .status-square {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        display: inline-block
+      }
+
+      .progress-name,
+      .progress-value,
+      .progress-percent {
+        font-size: 1.12rem;
+        font-weight: 800
+      }
+
+      .donut-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 20px;
+        align-items: center
+      }
+
+      .donut-chart-box {
+        position: relative;
+        height: 280px;
+        width: 280px;
+        max-width: 100%;
+        margin: 0 auto
+      }
+
+      .donut-center-copy {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        text-align: center;
+        z-index: 2
+      }
+
+      .donut-center-copy>div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 144px;
+        margin: 0 auto
+      }
+
+      .donut-center-copy span {
+        display: block;
+        color: var(--muted);
+        font-weight: 700;
+        margin-bottom: 6px;
+        font-size: 1.05rem;
+        line-height: 1.1
+      }
+
+      .donut-center-copy strong {
+        display: block;
+        line-height: 1.08;
+        max-width: 100%;
+        text-align: center
+      }
+
+      .donut-legend-premium {
+        display: grid;
+        gap: 18px
+      }
+
+      .donut-legend-item {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 14px;
+        align-items: start
+      }
+
+      .donut-legend-name {
+        font-size: 1.12rem;
+        font-weight: 800
+      }
+
+      .donut-legend-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-top: 2px
+      }
+
+      .donut-legend-sub {
+        color: var(--muted);
+        margin-top: 2px
+      }
+
+      .kpi-value {
+        font-size: 2.7rem;
+        font-weight: 900;
+        line-height: 1.05
+      }
+
+      .chart-fixed-height {
+        height: 320px
+      }
+
+      .summary-table-wrap {
+        overflow: auto;
+        border: 1px solid #e6edf4;
+        border-radius: 18px
+      }
+
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 520px
+      }
+
+      .summary-table th,
+      .summary-table td {
+        padding: 10px 12px;
+        border-top: 1px solid #edf1f6;
+        text-align: left
+      }
+
+      .summary-table th {
+        background: #f7f9fc;
+        color: #60748f;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        border-top: none
+      }
+
+      .summary-table td:nth-child(n+2),
+      .summary-table th:nth-child(n+2) {
+        text-align: right
+      }
+
+      .note-body {
+        line-height: 1.65;
+        white-space: pre-wrap
+      }
+
+      @media (max-width: 1100px) {
+
+        .preview-grid-two,
+        .preview-grid-three,
+        .filter-grid-premium,
+        .donut-grid {
+          grid-template-columns: 1fr
+        }
+
+        .progress-card-head {
+          flex-direction: column;
+          align-items: flex-start
+        }
+
+        .progress-bars {
+          grid-template-columns: 1fr
+        }
+
+        .progress-segment:first-child,
+        .progress-segment:last-child {
+          border-radius: 18px
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="page">
+        <div id="app" class="preview-canvas"></div>
+      </div>
+    </div>
+    <script>
+      const payload = {
+        "projectName": "KPI Studio Local",
+        "rows": [{
+          "an": 2014,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 100.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 367.06,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 211.05,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 114.18,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 317.45,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 460.24,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2014,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 103,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2014,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 100.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 383.76,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 194.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 114.18,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 31.61,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 285.84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 460.24,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2015,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 103,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2015,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 100.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 383.76,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 194.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 114.18,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 31.61,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 285.84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 460.24,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2016,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 103,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2016,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 100.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 399.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 178.91,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 114.18,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 31.61,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 285.84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 460.24,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2017,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 103,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2017,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 100.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 399.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 178.91,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 144.69,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 17.9,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 269.04,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 443.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 28.75,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 41.25,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2018,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 39.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 81.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2018,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 51.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 49.57,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 442.48,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 13.17,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 122.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 144.69,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 24.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 262.74,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 443.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 28.75,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 41.25,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2019,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 39.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 81.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2019,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 55.67,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 45.1,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 442.48,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 43.52,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 92.11,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 174.24,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 86.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 170.89,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 443.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 45.75,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În construcție",
+          "km": 24.25,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2020,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 71.6,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 49.52,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2020,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 74.67,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 26.1,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 442.48,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 53.38,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În planificare",
+          "km": 82.25,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 178.74,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 97.69,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 155.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 443.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2021,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 30,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 73,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 103.42,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 17.7,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2021,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 74.67,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 26.1,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 455.65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 122.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 178.74,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 97.69,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 155.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 160.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 283.18,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 305.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 300,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2022,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 30,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 73,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 39.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 63.57,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În planificare",
+          "km": 17.7,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2022,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 35.3,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 65.47,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 455.65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 122.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 194.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 108.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 128.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 16.27,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 318.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 125,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În construcție",
+          "km": 29.91,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 275.77,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În construcție",
+          "km": 68.04,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 231.96,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2023,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În construcție",
+          "km": 5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 11,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În planificare",
+          "km": 73,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 71.6,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În construcție",
+          "km": 49.52,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 3.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2023,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 139.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 60.83,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 39.94,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 486,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 92.11,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 194.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 108.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 128.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 119.71,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 215.53,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 125,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În construcție",
+          "km": 77.31,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 228.37,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În construcție",
+          "km": 68.04,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 231.96,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2024,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 335,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În construcție",
+          "km": 5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 22.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2024,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 120.47,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 78.8,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 21.97,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 486,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 92.11,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 194.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 108.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 128.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 236.34,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 98.9,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 125,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În construcție",
+          "km": 273.28,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 32.4,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În construcție",
+          "km": 68.04,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 231.96,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În construcție",
+          "km": 10.83,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2025,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 324.17,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 22.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În construcție",
+          "km": 73.4,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2025,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În planificare",
+          "km": 47.07,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70.2,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada de Centură București",
+          "judet": "",
+          "status": "În construcție",
+          "km": 30.57,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A0",
+          "nume_ruta": "Autostrada de Centură București",
+          "lungime_totala_km": 100.8
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 486,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Nădlac",
+          "judet": "",
+          "status": "În construcție",
+          "km": 92.11,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A1",
+          "nume_ruta": "Autostrada București–Nădlac",
+          "lungime_totala_km": 577.98
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 202.79,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A2",
+          "nume_ruta": "Autostrada București–Constanța",
+          "lungime_totala_km": 202.79
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 194.43,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În construcție",
+          "km": 108.35,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada București–Borș",
+          "judet": "",
+          "status": "În planificare",
+          "km": 128.85,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A3",
+          "nume_ruta": "Autostrada București–Borș",
+          "lungime_totala_km": 439.12
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 21.78,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada By-pass Constanța",
+          "judet": "",
+          "status": "În planificare",
+          "km": 30.59,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A4",
+          "nume_ruta": "Autostrada By-pass Constanța",
+          "lungime_totala_km": 52
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 10.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Sud / Lugoj–București",
+          "judet": "",
+          "status": "În planificare",
+          "km": 289.5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A6",
+          "nume_ruta": "Autostrada Sud / Lugoj–București",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 197.56,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În construcție",
+          "km": 137.68,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Ploiești–Siret",
+          "judet": "",
+          "status": "În planificare",
+          "km": 125,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A7",
+          "nume_ruta": "Autostrada Ploiești–Siret",
+          "lungime_totala_km": 453
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În construcție",
+          "km": 78.81,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "judet": "",
+          "status": "În planificare",
+          "km": 226.87,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A8",
+          "nume_ruta": "Autostrada Unirii Târgu Mureș–Ungheni",
+          "lungime_totala_km": 305
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Timișoara–Moravița",
+          "judet": "",
+          "status": "În planificare",
+          "km": 72.93,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A9",
+          "nume_ruta": "Autostrada Timișoara–Moravița",
+          "lungime_totala_km": 72.93
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Sebeș–Turda",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 70,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A10",
+          "nume_ruta": "Autostrada Sebeș–Turda",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În construcție",
+          "km": 68.04,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "judet": "",
+          "status": "În planificare",
+          "km": 231.96,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A13",
+          "nume_ruta": "Autostrada Sibiu–Făgăraș–Brașov–Bacău",
+          "lungime_totala_km": 300
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În construcție",
+          "km": 10.83,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2026,
+          "ruta": "Autostrada Nordului Oar–Suceava",
+          "judet": "",
+          "status": "În planificare",
+          "km": 324.17,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "A14",
+          "nume_ruta": "Autostrada Nordului Oar–Suceava",
+          "lungime_totala_km": 335
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 5,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Turda–Dej",
+          "judet": "",
+          "status": "În planificare",
+          "km": 65,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx4",
+          "nume_ruta": "Drum Expres Turda–Dej",
+          "lungime_totala_km": 70
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Bacău–Piatra Neamț",
+          "judet": "",
+          "status": "În planificare",
+          "km": 51,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx5A",
+          "nume_ruta": "Drum Expres Bacău–Piatra Neamț",
+          "lungime_totala_km": 51
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 19,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Focșani–Brăila–Galați",
+          "judet": "",
+          "status": "În construcție",
+          "km": 84,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx6",
+          "nume_ruta": "Drum Expres Focșani–Brăila–Galați",
+          "lungime_totala_km": 85.81
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Craiova–Pitești",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 121.12,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx12",
+          "nume_ruta": "Drum Expres Craiova–Pitești",
+          "lungime_totala_km": 121.12
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În utilizare",
+          "km": 22.46,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }, {
+          "an": 2026,
+          "ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "judet": "",
+          "status": "În construcție",
+          "km": 120.47,
+          "numar_segmente": 0,
+          "numar_total_loturi": 0,
+          "cod_ruta": "DEx16",
+          "nume_ruta": "Drum Expres Arad–Oradea (+ A11 legătură)",
+          "lungime_totala_km": 136.97
+        }],
+        "columns": [{
+          "name": "an",
+          "type": "year"
+        }, {
+          "name": "cod_ruta",
+          "type": "category"
+        }, {
+          "name": "nume_ruta",
+          "type": "category"
+        }, {
+          "name": "ruta",
+          "type": "category"
+        }, {
+          "name": "judet",
+          "type": "category"
+        }, {
+          "name": "status",
+          "type": "category"
+        }, {
+          "name": "km",
+          "type": "number"
+        }, {
+          "name": "numar_segmente",
+          "type": "number"
+        }, {
+          "name": "numar_total_loturi",
+          "type": "number"
+        }, {
+          "name": "lungime_totala_km",
+          "type": "number"
+        }],
+        "canvas": {
+          "width": 1600,
+          "minWidth": 1260,
+          "minHeight": 860,
+          "pageBg": "#eef2f7",
+          "canvasBg": "#ffffff",
+          "padding": 22
+        },
+        "components": [{
+          "id": "cmp-filter",
+          "type": "selective_filter",
+          "slot": "filter",
+          "title": "Filtre condiționale",
+          "subtitle": "Schimbă anul, ruta, statusul și județul pentru a recalcula întregul dashboard.",
+          "fields": ["an", "cod_ruta", "nume_ruta", "status"],
+          "style": {}
+        }, {
+          "id": "cmp-progress",
+          "type": "progress_status",
+          "slot": "main_left",
+          "title": "Progres pe rute",
+          "subtitle": "Compoziția pe status pentru selecția curentă. Grafic util pentru comparații rapide între segmentele active.",
+          "fields": ["in_utilizare", "in_constructie", "in_planificare"],
+          "style": {}
+        }, {
+          "id": "cmp-donut",
+          "type": "donut_status",
+          "slot": "bottom_left",
+          "title": "Status rețea",
+          "subtitle": "Distribuție pe status pentru anul activ și filtrele curente.",
+          "fields": ["in_utilizare", "in_constructie", "in_planificare"],
+          "style": {}
+        }, {
+          "id": "cmp-line",
+          "type": "line_trend",
+          "slot": "main_right",
+          "title": "Trend valori",
+          "subtitle": "Evoluția valorilor totale pe ani.",
+          "fields": ["in_utilizare", "in_constructie", "in_planificare"],
+          "style": {}
+        }, {
+          "id": "cmp-bar",
+          "type": "bar_compare",
+          "slot": "bottom",
+          "title": "Evoluție comparativă",
+          "subtitle": "Comparație între km, segmente și loturi pentru filtrarea curentă.",
+          "fields": ["in_constructie", "in_utilizare", "in_planificare"],
+          "style": {}
+        }, {
+          "id": "cmp-stacked",
+          "type": "stacked_status",
+          "slot": "bottom_left",
+          "title": "Distribuție cumulată",
+          "subtitle": "Statusurile sunt comparate pe ani într-un stacked bar compact.",
+          "fields": ["in_utilizare", "in_constructie", "in_planificare"],
+          "style": {}
+        }, {
+          "id": "cmp-table",
+          "type": "summary_table",
+          "slot": "bottom_right",
+          "title": "Tabel sumar",
+          "subtitle": "Top rute pentru selecția curentă.",
+          "limit": 20,
+          "style": {}
+        }],
+        "selectedYear": 2026,
+        "filterValues": {
+          "an": "__all__",
+          "cod_ruta": "__all__",
+          "nume_ruta": "__all__",
+          "status": "__all__"
+        },
+        "statusColors": {
+          "in_utilizare": "#1f8f54",
+          "in_constructie": "#df8b22",
+          "in_planificare": "#2464bf"
+        },
+        "statusLabels": {
+          "in_utilizare": "În utilizare",
+          "in_constructie": "În construcție",
+          "in_planificare": "În planificare"
+        }
+      };
+      const FILTER_ALL = '__all__';
+      const STATUS_COLORS = {
+        'În utilizare': '#1f8f54',
+        'În construcție': '#df8b22',
+        'În planificare': '#2464bf'
+      };
+      let currentYear = payload.selectedYear;
+      let filterValues = {
+        ...(payload.filterValues || {})
+      };
+
+      function fmt(value) {
+        return new Intl.NumberFormat('ro-RO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        }).format(Number(value || 0))
+      }
+
+      function fmtPercent(value) {
+        return Number(value || 0).toFixed(1).replace('.', ',') + '%'
+      }
+
+      function years() {
+        return [...new Set(payload.rows.map(row => Number(row.an)).filter(v => !Number.isNaN(v)))].sort((a, b) => a - b)
+      }
+
+      function componentStyles(component) {
+        const s = component.style || {};
+        return {
+          backgroundColor: s.backgroundColor || '#ffffff',
+          titleColor: s.titleColor || '#11213b',
+          subtitleColor: s.subtitleColor || '#6e8098',
+          accentColor: s.accentColor || '#2464bf',
+          valueColor: s.valueColor || '#11213b',
+          borderColor: s.borderColor || '#d8e0ea',
+          titleSize: s.titleSize || 22,
+          subtitleSize: s.subtitleSize || 14,
+          valueSize: s.valueSize || 22,
+          radius: s.radius || 24
+        }
+      }
+
+      function cardStyle(component) {
+        const st = componentStyles(component);
+        return `background:${st.backgroundColor};border-color:${st.borderColor};border-radius:${st.radius}px;`
+      }
+
+      function titleBlock(component) {
+        const st = componentStyles(component);
+        return `<div style="margin-bottom:${component.subtitle?12:16}px"><div class="card-title" style="color:${st.titleColor};font-size:${st.titleSize}px">${component.title||''}</div>${component.subtitle?`<div class="card-subtitle" style="color:${st.subtitleColor};font-size:${st.subtitleSize}px">${component.subtitle}</div>`:''}</div>`
+      }
+
+      function unique(field) {
+        return [...new Set(payload.rows.map(r => r[field]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ro'))
+      }
+
+      function fieldEquals(rowValue, filterValue) {
+        return String(rowValue ?? '') === String(filterValue ?? '')
+      }
+
+      function filteredRows() {
+        return payload.rows.filter(row => Number(row.an) === Number(currentYear)).filter(row => Object.entries(filterValues).every(([field, value]) => value === FILTER_ALL || fieldEquals(row[field], value)))
+      }
+      const CHART_FIELDS = [{
+        value: 'total_km',
+        label: 'Total km',
+        color: '#2464bf'
+      }, {
+        value: 'segmente',
+        label: 'Segmente',
+        color: '#df8b22'
+      }, {
+        value: 'loturi',
+        label: 'Loturi',
+        color: '#1f8f54'
+      }, {
+        value: 'in_utilizare',
+        label: 'În utilizare',
+        color: '#1f8f54'
+      }, {
+        value: 'in_constructie',
+        label: 'În construcție',
+        color: '#df8b22'
+      }, {
+        value: 'in_planificare',
+        label: 'În planificare',
+        color: '#2464bf'
+      }];
+
+      function labelOf(field) {
+        const found = CHART_FIELDS.find(item => item.value === field);
+        if (found) return found.label;
+        return String(field || '').replace(/_/g, ' ').replace(/w/g, m => m.toUpperCase())
+      }
+
+      function colorOf(field, index = 0) {
+        const found = CHART_FIELDS.find(item => item.value === field);
+        return found?.color || ['#2464bf', '#df8b22', '#1f8f54', '#7c3aed', '#0ea5e9', '#ef4444'][index % 6]
+      }
+
+      function numericFields() {
+        return (payload.columns || []).filter(col => col.type === 'number').map(col => col.name)
+      }
+
+      function summarizeRows(rows) {
+        const totalKm = rows.reduce((acc, row) => acc + Number(row.km || 0), 0);
+        const segmente = rows.reduce((acc, row) => acc + Number(row.numar_segmente || 0), 0);
+        const loturi = rows.reduce((acc, row) => acc + Number(row.numar_total_loturi || 0), 0);
+        const base = {
+          'În utilizare': 0,
+          'În construcție': 0,
+          'În planificare': 0
+        };
+        rows.forEach(row => {
+          if (base[row.status] !== undefined) base[row.status] += Number(row.km || 0)
+        });
+        const total = Object.values(base).reduce((a, b) => a + b, 0);
+        const rawSums = {};
+        numericFields().forEach(field => {
+          rawSums[field] = rows.reduce((acc, row) => acc + Number(row[field] || 0), 0)
+        });
+        const derivedValues = {
+          total_km: totalKm,
+          segmente,
+          loturi,
+          in_utilizare: base['În utilizare'],
+          in_constructie: base['În construcție'],
+          in_planificare: base['În planificare']
+        };
+        return {
+          totalKm,
+          segmente,
+          loturi,
+          rawSums,
+          derivedValues,
+          statusSummary: Object.entries(base).map(([name, value]) => ({
+            name,
+            value,
+            percent: total ? value / total * 100 : 0,
+            color: STATUS_COLORS[name]
+          }))
+        }
+      }
+
+      function summaryValue(summary, field) {
+        if (summary.derivedValues && field in summary.derivedValues) return Number(summary.derivedValues[field] || 0);
+        if (summary.rawSums && field in summary.rawSums) return Number(summary.rawSums[field] || 0);
+        return 0
+      }
+
+      function chartItems(fields, summary) {
+        const safe = fields && fields.length ? fields : ['in_utilizare', 'in_constructie', 'in_planificare'];
+        const total = safe.reduce((acc, field) => acc + summaryValue(summary, field), 0);
+        return safe.map((field, index) => ({
+          key: field,
+          name: labelOf(field),
+          value: summaryValue(summary, field),
+          percent: total ? summaryValue(summary, field) / total * 100 : 0,
+          color: colorOf(field, index)
+        }))
+      }
+
+      function routeSummary(rows, fields) {
+        const safe = fields && fields.length ? fields : ['total_km', 'segmente', 'loturi'];
+        const groups = new Map();
+        rows.forEach(row => {
+          const key = row.ruta || row.nume_ruta || row.cod_ruta || 'Nespecificat';
+          const bucket = groups.get(key) || [];
+          bucket.push(row);
+          groups.set(key, bucket)
+        });
+        return [...groups.entries()].map(([ruta, groupRows]) => {
+          const summary = summarizeRows(groupRows);
+          const values = Object.fromEntries(safe.map(field => [field, summaryValue(summary, field)]));
+          return {
+            ruta,
+            values
+          }
+        }).sort((a, b) => Number((b.values && b.values.total_km) || 0) - Number((a.values && a.values.total_km) || 0))
+      }
+
+      function trendData() {
+        return years().map(year => {
+          const rows = payload.rows.filter(row => Number(row.an) === Number(year)).filter(row => Object.entries(filterValues).every(([field, value]) => field === 'an' || value === FILTER_ALL || fieldEquals(row[field], value)));
+          const s = summarizeRows(rows);
+          return {
+            an: year,
+            ...s.derivedValues,
+            ...s.rawSums
+          }
+        })
+      }
+
+      function stackedData(fields) {
+        return trendData().map(item => {
+          const out = {
+            an: item.an
+          };
+          (fields || ['in_utilizare', 'in_constructie', 'in_planificare']).forEach(field => {
+            out[labelOf(field)] = Number(item[field] || 0)
+          });
+          return out
+        })
+      }
+
+      function renderHeader(component) {
+        return `<div class="header-block" style="${cardStyle(component)}">${titleBlock(component)}</div>`
+      }
+
+      function renderYearSlider(component) {
+        const ys = years();
+        return `<div class="surface-card" style="${cardStyle(component)}"><div class="slider-top"><strong>${component.title||'An selectat'}</strong><span class="pill-dark" id="yearBadge">${currentYear}</span></div><input type="range" min="${ys[0]}" max="${ys[ys.length-1]}" step="1" value="${currentYear}" class="year-slider" id="yearSlider"><div class="slider-scale"><span>${ys[0]}</span><span>${ys[ys.length-1]}</span></div></div>`
+      }
+
+      function renderSelectiveFilter(component) {
+        const fields = (component.fields && component.fields.length ? component.fields : (payload.components.find(item => item.type === 'selective_filter')?.fields || []));
+        return `<div class="surface-card" style="${cardStyle(component)}"><div class="filter-header-premium"><div>${titleBlock(component)}</div><button class="reset-button" id="resetFiltersBtn" type="button">Reset filtre</button></div><div class="filter-grid-premium">${fields.map(field=>`<div><label class="field-label">${field.toUpperCase()}</label><select class="ui-select filter-select" data-field="${field}"><option value="${FILTER_ALL}">Toate valorile</option>${unique(field).map(value=>`<option value="${String(value).replace(/"/g,'&quot;')}" ${filterValues[field]===value?'selected':''}>${value}</option>`).join('')}</select></div>`).join('')}</div></div>`
+      }
+
+      function renderProgress(component, summary) {
+        const st = componentStyles(component);
+        const routeLabel = (filterValues.nume_ruta && filterValues.nume_ruta !== FILTER_ALL) ? filterValues.nume_ruta : (filterValues.ruta && filterValues.ruta !== FILTER_ALL) ? filterValues.ruta : (filterValues.cod_ruta && filterValues.cod_ruta !== FILTER_ALL) ? filterValues.cod_ruta : 'Toate rutele';
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="progress-card-head"><div><div class="progress-title-line">${routeLabel} · anul ${currentYear}</div><div class="progress-total-line"><strong style="font-size:${st.valueSize}px;color:${st.valueColor}">${fmt(summary.totalKm)} km</strong><span>total analizat</span></div></div></div><div class="progress-bars">${summary.statusSummary.map(item=>`<div class="progress-segment" style="background:${item.color}"><small>${item.name}</small><span>${fmt(item.value)} km</span></div>`).join('')}</div><div class="progress-list">${summary.statusSummary.map(item=>`<div class="progress-row"><span class="status-square" style="background:${item.color}"></span><div class="progress-name">${item.name}</div><div class="progress-value">${fmt(item.value)} km</div><div class="progress-percent">${fmtPercent(item.percent)}</div></div>`).join('')}</div></div>`
+      }
+
+      function renderKpi(component, summary) {
+        const st = componentStyles(component);
+        const map = {
+          total_km: summary.totalKm,
+          segmente: summary.segmente,
+          loturi: summary.loturi
+        };
+        const value = map[component.metric] || 0;
+        const suffix = component.metric === 'total_km' ? ' km' : '';
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="kpi-value" style="font-size:${st.valueSize}px;color:${st.valueColor}">${fmt(value)}${suffix}</div></div>`
+      }
+
+      function renderDonut(component, summary) {
+        const st = componentStyles(component);
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="donut-grid"><div class="donut-chart-box"><canvas id="donutCanvas"></canvas><div class="donut-center-copy"><div><span style="font-size:${st.subtitleSize}px">Total</span><strong style="font-size:${st.valueSize}px;color:${st.valueColor}">${fmt(summary.totalKm)} km</strong></div></div></div><div class="donut-legend-premium">${summary.statusSummary.map(item=>`<div class="donut-legend-item"><span class="status-square" style="background:${item.color}"></span><div><div class="donut-legend-name">${item.name}</div><div class="donut-legend-value">${fmt(item.value)} km</div><div class="donut-legend-sub">${fmtPercent(item.percent)} din total</div></div></div>`).join('')}</div></div></div>`
+      }
+
+      function renderChartCard(component, id) {
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="chart-fixed-height"><canvas id="${id}"></canvas></div></div>`
+      }
+
+      function renderTable(component, rows) {
+        const top = routeSummary(rows).slice(0, component.limit || 5);
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="summary-table-wrap"><table class="summary-table"><thead><tr><th>Rută</th><th>Km</th><th>Segmente</th><th>Loturi</th></tr></thead><tbody>${top.map(item=>`<tr><td>${item.ruta}</td><td>${fmt(item.km)} km</td><td>${fmt(item.segmente)}</td><td>${fmt(item.loturi)}</td></tr>`).join('')}</tbody></table></div></div>`
+      }
+
+      function renderNote(component) {
+        const st = componentStyles(component);
+        return `<div class="surface-card" style="${cardStyle(component)}">${titleBlock(component)}<div class="note-body" style="font-size:${st.valueSize}px;color:${st.valueColor}">${component.body||''}</div></div>`
+      }
+
+      function chartTooltipOptions() {
+        return {
+          enabled: true,
+          padding: 18,
+          titleFont: {
+            size: 18,
+            weight: '700'
+          },
+          bodyFont: {
+            size: 18
+          },
+          backgroundColor: '#ffffff',
+          titleColor: '#11213b',
+          bodyColor: '#11213b',
+          borderColor: '#d8e0ea',
+          borderWidth: 1
+        }
+      }
+
+      function drawCharts(summary) {
+        const donutComponent = (payload.components || []).find(item => item.type === 'donut_status');
+        const donutItems = chartItems(donutComponent?.fields, summary);
+        const donut = document.getElementById('donutCanvas');
+        if (donut) {
+          new Chart(donut.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: donutItems.map(item => item.name),
+              datasets: [{
+                data: donutItems.map(item => item.value),
+                backgroundColor: donutItems.map(item => item.color),
+                borderWidth: 0
+              }]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+              maintainAspectRatio: false,
+              layout: {
+                padding: 10
+              },
+              plugins: {
+                legend: {
+                  display: false
+                },
+                tooltip: {
+                  ...chartTooltipOptions(),
+                  callbacks: {
+                    label: (ctx) => ctx.label + ': ' + fmt(ctx.raw) + ' km'
+                  }
+                },
+                datalabels: {
+                  formatter: (value, ctx) => {
+                    const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const p = total ? value / total * 100 : 0;
+                    return p ? Math.round(p) + '%' : '';
+                  },
+                  color: '#fff',
+                  font: {
+                    weight: '800',
+                    size: 14
+                  },
+                  anchor: 'center',
+                  align: 'center',
+                  offset: 0
+                }
+              },
+              cutout: '58%'
+            }
+          })
+        }
+        const trend = trendData();
+        const lineComponent = (payload.components || []).find(item => item.type === 'line_trend');
+        const lineFields = (lineComponent?.fields && lineComponent.fields.length ? lineComponent.fields : ['total_km', 'segmente', 'loturi']);
+        const line = document.getElementById('lineCanvas');
+        if (line) {
+          new Chart(line.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: trend.map(item => item.an),
+              datasets: lineFields.map((field, index) => ({
+                label: labelOf(field),
+                data: trend.map(item => item[field] || 0),
+                borderColor: colorOf(field, index),
+                backgroundColor: colorOf(field, index),
+                borderWidth: field === 'total_km' ? 3 : 2.4,
+                tension: .35,
+                pointRadius: 0,
+                pointHoverRadius: 5
+              }))
+            },
+            options: {
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
+              plugins: {
+                tooltip: chartTooltipOptions()
+              },
+              scales: {
+                x: {
+                  grid: {
+                    display: false
+                  }
+                },
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          })
+        }
+        const barComponent = (payload.components || []).find(item => item.type === 'bar_compare');
+        const barFields = (barComponent?.fields && barComponent.fields.length ? barComponent.fields : ['total_km', 'segmente', 'loturi']);
+        const bar = document.getElementById('barCanvas');
+        if (bar) {
+          new Chart(bar.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: trend.map(item => item.an),
+              datasets: barFields.map((field, index) => ({
+                label: labelOf(field),
+                data: trend.map(item => item[field] || 0),
+                backgroundColor: colorOf(field, index),
+                borderRadius: 10,
+                maxBarThickness: index === 0 ? 36 : 28
+              }))
+            },
+            options: {
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
+              plugins: {
+                tooltip: chartTooltipOptions()
+              },
+              scales: {
+                x: {
+                  grid: {
+                    display: false
+                  }
+                },
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          })
+        }
+        const stackedComponent = (payload.components || []).find(item => item.type === 'stacked_status');
+        const stackedFields = (stackedComponent?.fields && stackedComponent.fields.length ? stackedComponent.fields : ['in_utilizare', 'in_constructie', 'in_planificare']);
+        const stacked = document.getElementById('stackedCanvas');
+        if (stacked) {
+          const data = stackedData(stackedFields);
+          new Chart(stacked.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: data.map(item => item.an),
+              datasets: stackedFields.map((field, index) => ({
+                label: labelOf(field),
+                data: data.map(item => item[labelOf(field)] || 0),
+                backgroundColor: colorOf(field, index)
+              }))
+            },
+            options: {
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
+              plugins: {
+                tooltip: chartTooltipOptions()
+              },
+              scales: {
+                x: {
+                  stacked: true,
+                  grid: {
+                    display: false
+                  }
+                },
+                y: {
+                  stacked: true,
+                  beginAtZero: true
+                }
+              }
+            }
+          })
+        }
+      }
+
+      function render() {
+        const rows = filteredRows();
+        const summary = summarizeRows(rows);
+        const groups = {
+          header: [],
+          filter: [],
+          upper_left: [],
+          upper_center: [],
+          upper_right: [],
+          main_left: [],
+          main_right: [],
+          bottom_left: [],
+          bottom_right: [],
+          bottom: [],
+          lower_left: [],
+          lower_center: [],
+          lower_right: []
+        };
+        payload.components.forEach(component => {
+          if (groups[component.slot]) groups[component.slot].push(component)
+        });
+        const app = document.getElementById('app');
+        app.innerHTML = `<div class="slot-stack">${groups.header.map(component=>renderHeader(component)).join('')}</div><div class="slot-stack" style="margin-top:18px">${groups.filter.map(component=>component.type==='year_slider'?renderYearSlider(component):component.type==='selective_filter'?renderSelectiveFilter(component):'').join('')}</div><div class="preview-grid-three"><div class="slot-stack">${groups.upper_left.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.upper_center.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.upper_right.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div></div><div class="preview-grid-two"><div class="slot-stack">${groups.main_left.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.main_right.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div></div><div class="preview-grid-two"><div class="slot-stack">${groups.bottom_left.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.bottom_right.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div></div><div class="slot-stack" style="margin-top:18px">${groups.bottom.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="preview-grid-three"><div class="slot-stack">${groups.lower_left.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.lower_center.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div><div class="slot-stack">${groups.lower_right.map(component=>renderComponentHtml(component,rows,summary)).join('')}</div></div>`;
+        bindInteractions();
+        drawCharts(summary)
+      }
+
+      function renderComponentHtml(component, rows, summary) {
+        if (component.type === 'progress_status') return renderProgress(component, summary);
+        if (component.type === 'kpi') return renderKpi(component, summary);
+        if (component.type === 'donut_status') return renderDonut(component, summary);
+        if (component.type === 'line_trend') return renderChartCard(component, 'lineCanvas');
+        if (component.type === 'bar_compare') return renderChartCard(component, 'barCanvas');
+        if (component.type === 'stacked_status') return renderChartCard(component, 'stackedCanvas');
+        if (component.type === 'summary_table') return renderTable(component, rows);
+        if (component.type === 'note_block') return renderNote(component);
+        return ''
+      }
+
+      function bindInteractions() {
+        const slider = document.getElementById('yearSlider');
+        if (slider) {
+          const badge = document.getElementById('yearBadge');
+          slider.addEventListener('input', event => {
+            if (badge) badge.textContent = event.target.value
+          });
+          const commit = value => {
+            const next = Number(value);
+            if (!Number.isNaN(next) && next !== currentYear) {
+              currentYear = next;
+              render()
+            }
+          };
+          slider.addEventListener('change', event => commit(event.target.value));
+          slider.addEventListener('mouseup', event => commit(event.target.value));
+          slider.addEventListener('touchend', event => commit(event.target.value), {
+            passive: true
+          });
+          slider.addEventListener('keyup', event => commit(event.target.value));
+        }
+        document.querySelectorAll('.filter-select').forEach(select => {
+          select.onchange = event => {
+            const field = event.target.dataset.field;
+            const value = event.target.value;
+            filterValues[field] = value;
+            if (field === 'an' && value !== FILTER_ALL) {
+              currentYear = Number(value)
+            }
+            render()
+          }
+        });
+        const reset = document.getElementById('resetFiltersBtn');
+        if (reset) {
+          reset.onclick = () => {
+            const selective = (payload.components || []).find(item => item.type === 'selective_filter');
+            const fields = (selective?.fields || []);
+            filterValues = Object.fromEntries(fields.map(field => [field, FILTER_ALL]));
+            render()
+          }
+        }
+      }
+      render();
+    </script>
+  </body>
+
+</html>
