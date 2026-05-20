@@ -13,6 +13,7 @@ import {
   Save,
   Settings2,
   Sun,
+  Trash2,
   Upload,
   X,
 } from 'lucide-react';
@@ -308,6 +309,41 @@ export function App() {
     setSelectedMetricId(metric.id);
   }
 
+  function deleteSelectedComponent() {
+    if (!project || !selectedComponent) return;
+    const confirmed = window.confirm(`Ștergi componenta „${selectedComponent.title}”? Această acțiune nu poate fi anulată automat.`);
+    if (!confirmed) return;
+    const nextComponents = project.components.filter((component) => component.id !== selectedComponent.id);
+    updateProject({ components: nextComponents });
+    setSelectedComponentId(nextComponents[0]?.id || '');
+  }
+
+  function deleteSelectedMetric() {
+    if (!project || !selectedMetric) return;
+    const confirmed = window.confirm(
+      `Ștergi metrica „${selectedMetric.label}”? Componentele care folosesc această metrică vor fi actualizate automat.`,
+    );
+    if (!confirmed) return;
+    const nextMetrics = project.metrics.filter((metric) => metric.id !== selectedMetric.id);
+    const nextMetricId = nextMetrics[0]?.id || '';
+    const nextStatusColors = { ...project.statusColors };
+    delete nextStatusColors[selectedMetric.id];
+    const nextComponents = project.components.map((component) => {
+      const fields = component.fields?.filter((field) => field !== selectedMetric.id);
+      return {
+        ...component,
+        metric: component.metric === selectedMetric.id ? nextMetricId || undefined : component.metric,
+        fields: component.fields ? fields : component.fields,
+      };
+    });
+    updateProject({
+      metrics: nextMetrics,
+      statusColors: nextStatusColors,
+      components: nextComponents,
+    });
+    setSelectedMetricId(nextMetricId);
+  }
+
   function exportHtml() {
     if (!project) return;
     download('kpi-dashboard.html', makeStandaloneHtml(project), 'text/html;charset=utf-8');
@@ -348,17 +384,19 @@ export function App() {
           </div>
         </div>
         <div className="toolbar">
-          <button className="icon-button" onClick={loadDemo} title="Încarcă tabel_master.xlsx">
-            <Database size={18} />
-            Demo
-          </button>
+          {!project && (
+            <button className="icon-button" onClick={loadDemo} title="Încarcă tabel_master.xlsx">
+              <Database size={18} />
+              Demo
+            </button>
+          )}
           <button className="icon-button" onClick={() => importRef.current?.click()} title="Import XLSX sau CSV">
             <FileInput size={18} />
             Import
           </button>
           <button className="icon-button" onClick={backupJson} disabled={!project} title="Backup JSON">
             <Save size={18} />
-            JSON
+            Save
           </button>
           <button className="icon-button" onClick={() => restoreRef.current?.click()} title="Restore JSON">
             <Upload size={18} />
@@ -553,7 +591,12 @@ export function App() {
 
             {selectedComponent && (
               <section className="panel-section">
-                <h2>Config componentă</h2>
+                <div className="config-header">
+                  <h2>Config componentă</h2>
+                  <button className="danger-icon-button" onClick={deleteSelectedComponent} title="Șterge componenta selectată">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
                 <label className="control">
                   <span>Titlu</span>
                   <input value={selectedComponent.title} onChange={(event) => updateComponent({ title: event.target.value })} />
@@ -686,7 +729,12 @@ export function App() {
 
             {selectedMetric && (
               <section className="panel-section">
-                <h2>Config metrică</h2>
+                <div className="config-header">
+                  <h2>Config metrică</h2>
+                  <button className="danger-icon-button" onClick={deleteSelectedMetric} title="Șterge metrica selectată">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
                 <label className="control">
                   <span>ID</span>
                   <input value={selectedMetric.id} onChange={(event) => updateMetric({ id: event.target.value })} />

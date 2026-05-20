@@ -231,6 +231,47 @@ button:disabled {
   color: var(--heading);
 }
 
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.config-header h2 {
+  margin: 0;
+}
+
+.danger-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #f2b8b8;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #b42318;
+  cursor: pointer;
+}
+
+.danger-icon-button:hover {
+  border-color: #ef4444;
+  background: #fee2e2;
+}
+
+.studio-shell[data-theme="dark"] .danger-icon-button {
+  border-color: #7f1d1d;
+  background: #2a1518;
+  color: #fca5a5;
+}
+
+.studio-shell[data-theme="dark"] .danger-icon-button:hover {
+  border-color: #ef4444;
+  background: #3b171d;
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
